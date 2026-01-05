@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(50)
+  username  String    @unique @db.VarChar(50)
+  password  String    @db.VarChar(250)
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  workspaces       Workspace[]
+  categories       Category[]
+  expenses         Expense[]
+  workspaceMembers WorkspaceMember[]
+
+  @@map("users")
+}
+
+model Workspace {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(50)
+  description String    @db.VarChar(250)
+  ownerId     Int       @map("owner_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+
+  owner                     User                      @relation(fields: [ownerId], references: [id])
+  categories                Category[]
+  expenses                  Expense[]
+  roles                     Role[]
+  workspaceMembers          WorkspaceMember[]
+  workspaceBudgets          WorkspaceBudgetPeriod[]
+  workspaceBudgetCategories WorkspaceBudgetCategory[]
+
+  @@map("workspaces")
+}
+
+model Category {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(50)
+  description String? @db.VarChar(250)
+
+  workspaceId Int @map("workspace_id")
+  createdById Int @map("created_by")
+
+  workspace                 Workspace                 @relation(fields: [workspaceId], references: [id])
+  createdBy                 User                      @relation(fields: [createdById], references: [id])
+  expenses                  Expense[]
+  workspaceBudgetCategories WorkspaceBudgetCategory[]
+
+  @@map("categories")
+}
+
+model Expense {
+  id              Int      @id @default(autoincrement())
+  name            String   @db.VarChar(50)
+  description     String?  @db.VarChar(250)
+  amount          Decimal  @db.Decimal(18, 2)
+  transactionDate DateTime @map("transaction_date")
+
+  userId      Int @map("user_id")
+  workspaceId Int @map("workspace_id")
+  categoryId  Int @map("category_id")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime? @updatedAt @map("updated_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+  category  Category  @relation(fields: [categoryId], references: [id])
+
+  @@map("expenses")
+}
+
+model Role {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(50)
+  description String? @db.VarChar(100)
+
+  workspaceId      Int               @map("workspace_id")
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id])
+  rolePermissions  RolePermission[]
+  workspaceMembers WorkspaceMember[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              Int              @id @default(autoincrement())
+  slug            String           @unique @db.VarChar(50)
+  description     String?          @db.VarChar(100)
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  roleId       Int @map("role_id")
+  permissionId Int @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id])
+  permission Permission @relation(fields: [permissionId], references: [id])
+
+  @@id([roleId, permissionId])
+  @@map("roles_permissions")
+}
+
+model WorkspaceMember {
+  id          Int      @id @default(autoincrement())
+  workspaceId Int      @map("workspace_id")
+  userId      Int      @map("user_id")
+  roleId      Int      @map("role_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role      @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@map("workspace_members")
+}
+
+model WorkspaceBudgetPeriod {
+  id          Int     @id @default(autoincrement())
+  workspaceId Int     @map("workspace_id")
+  month       Int
+  year        Int
+  totalAmount Decimal @map("total_amount") @db.Decimal(18, 2)
+
+  workspace                 Workspace                 @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceBudgetCategories WorkspaceBudgetCategory[]
+
+  @@unique([workspaceId, month, year])
+  @@map("workspace_budget_periods")
+}
+
+model WorkspaceBudgetCategory {
+  id             Int     @id @default(autoincrement())
+  workspaceId    Int     @map("workspace_id")
+  categoryId     Int     @map("category_id")
+  budgetPeriodId Int     @map("budget_period_id")
+  amount         Decimal @db.Decimal(18, 2)
+
+  workspace    Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  category     Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  budgetPeriod WorkspaceBudgetPeriod @relation(fields: [budgetPeriodId], references: [id], onDelete: Cascade)
+
+  @@map("workspace_budget_categories")
+}
