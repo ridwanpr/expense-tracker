@@ -4,12 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "debug": "tsx --inspect src/index.ts",
+    "start": "node dist/main.js",
+    "build": "rimraf dist && tsc",
     "test": "vitest",
     "coverage": "vitest run --coverage"
   },
   "type": "module",
   "keywords": [],
-  "author": "",
+  "author": "ridwan",
   "license": "ISC",
   "packageManager": "pnpm@10.24.0",
   "dependencies": {
@@ -26,6 +30,8 @@
     "@types/express": "^5.0.6",
     "@types/node": "^25.0.3",
     "prisma": "^7.2.0",
+    "rimraf": "^6.1.2",
+    "supertest": "^7.1.4",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "vitest": "^4.0.16"
