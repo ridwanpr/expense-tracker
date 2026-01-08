@@ -109,9 +109,22 @@ describe("POST /api/login", () => {
   });
 
   it("should reject login if user not found", async () => {
+    await UserTest.create();
+
     const response = await supertest(app)
       .post("/api/login")
-      .send({ username: "test", password: "test" });
+      .send({ username: "nouserfound", password: "test" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should reject login if user found but wrong password", async () => {
+    await UserTest.create();
+
+    const response = await supertest(app)
+      .post("/api/login")
+      .send({ username: "test", password: "wrongpassword" });
 
     expect(response.status).toBe(400);
     expect(response.body.errors).toBeDefined();
@@ -123,6 +136,28 @@ describe("POST /api/login", () => {
     const response = await supertest(app)
       .post("/api/login")
       .send({ username: "test", password: "tests" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should reject login if input missing password", async () => {
+    await UserTest.create();
+
+    const response = await supertest(app)
+      .post("/api/login")
+      .send({ username: "test" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should reject login if input missing username", async () => {
+    await UserTest.create();
+
+    const response = await supertest(app)
+      .post("/api/login")
+      .send({ passwoed: "123456" });
 
     expect(response.status).toBe(400);
     expect(response.body.errors).toBeDefined();
