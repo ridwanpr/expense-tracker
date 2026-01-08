@@ -1,0 +1,37 @@
+import { prisma } from "../src/application/database";
+import bcrypt from "bcrypt";
+import { User } from "../src/generated/prisma/client";
+
+export class UserTest {
+  static async delete() {
+    await prisma.user.deleteMany({
+      where: {
+        username: "test",
+      },
+    });
+  }
+
+  static async create() {
+    await prisma.user.create({
+      data: {
+        username: "test",
+        password: await bcrypt.hash("test", 11),
+        name: "test",
+      },
+    });
+  }
+
+  static async get(): Promise<User> {
+    const user = await prisma.user.findFirst({
+      where: {
+        username: "test",
+      },
+    });
+
+    if (!user) {
+      throw new Error("Test user is not found");
+    }
+
+    return user;
+  }
+}
