@@ -13,9 +13,15 @@ export class UserService {
       request
     );
 
+    const registerData = {
+      username: registerRequest.username.trim(),
+      name: registerRequest.name.trim(),
+      password: registerRequest.password.trim(),
+    };
+
     const isUsernameUsed = await prisma.user.findFirst({
       where: {
-        username: registerRequest.username,
+        username: registerData.username,
       },
     });
 
@@ -23,10 +29,10 @@ export class UserService {
       throw new ResponseError(400, "Username already exists");
     }
 
-    registerRequest.password = await bcrypt.hash(registerRequest.password, 11);
+    registerData.password = await bcrypt.hash(registerData.password, 11);
 
     const newUser = await prisma.user.create({
-      data: registerRequest,
+      data: registerData,
     });
 
     const payload = { userId: newUser.id };
