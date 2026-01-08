@@ -89,3 +89,66 @@ describe("POST /api/register", () => {
     expect(response.body.data.name).toBe("test");
   });
 });
+
+describe("POST /api/login", () => {
+  afterEach(async () => {
+    await UserTest.delete();
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it("should reject login if no request body", async () => {
+    await UserTest.create();
+
+    const response = await supertest(app).post("/api/login").send();
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should reject login if user not found", async () => {
+    const response = await supertest(app)
+      .post("/api/login")
+      .send({ username: "test", password: "test" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should reject login if credentials invalid", async () => {
+    await UserTest.create();
+
+    const response = await supertest(app)
+      .post("/api/login")
+      .send({ username: "test", password: "tests" });
+
+    expect(response.status).toBe(400);
+    expect(response.body.errors).toBeDefined();
+  });
+
+  it("should login if credentials is valid", async () => {
+    await UserTest.create();
+
+    const response = await supertest(app)
+      .post("/api/login")
+      .send({ username: "test", password: "123456" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.success).toBe(true);
+    expect(response.body.message).toBe("Login user success");
+  });
+
+  it("should trim whitespace from inputs", async () => {
+    await UserTest.create();
+
+    const response = await supertest(app)
+      .post("/api/login")
+      .send({ username: "  test ", password: "123456" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.username).toBe("test");
+    expect(response.body.data.name).toBe("test");
+  });
+});

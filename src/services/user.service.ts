@@ -1,7 +1,11 @@
 import bcrypt from "bcrypt";
 import { prisma } from "../application/database";
 import { ResponseError } from "../error/response.error";
-import { CreateUserRequest, toUserResponse } from "../models/user.model";
+import {
+  CreateUserRequest,
+  LoginRequest,
+  toUserResponse,
+} from "../models/user.model";
 import { UserValidation } from "../validations/user.validation";
 import { Validation } from "../validations/validation";
 import { generateToken } from "../utils/generateToken";
@@ -13,15 +17,9 @@ export class UserService {
       request
     );
 
-    const registerData = {
-      username: registerRequest.username.trim(),
-      name: registerRequest.name.trim(),
-      password: registerRequest.password.trim(),
-    };
-
     const isUsernameUsed = await prisma.user.findFirst({
       where: {
-        username: registerData.username,
+        username: registerRequest.username,
       },
     });
 
@@ -29,10 +27,10 @@ export class UserService {
       throw new ResponseError(400, "Username already exists");
     }
 
-    registerData.password = await bcrypt.hash(registerData.password, 11);
+    registerRequest.password = await bcrypt.hash(registerRequest.password, 11);
 
     const newUser = await prisma.user.create({
-      data: registerData,
+      data: registerRequest,
     });
 
     const payload = { userId: newUser.id };
@@ -40,5 +38,34 @@ export class UserService {
     const refreshToken = await generateToken(payload, "30d");
 
     return toUserResponse(newUser, refreshToken, accessToken);
+  }
+
+  static async login(request: LoginRequest) {
+    const loginRequest = Validation.validate(UserValidation.LOGIN, request);
+
+    const user = await prisma.user.findFirst({
+      where: {
+        username: loginRequest.username,
+      },
+    });
+
+    if (!user) {
+      throw new ResponseError(400, "Invalid Credentials");
+    }
+
+    const passwordIsmatch = await bcrypt.compare(
+      loginRequest.password,
+      user.password
+    );
+
+    if (!passwordIsmatch) {
+      throw new ResponseError(400, "Invalid Credentials");
+    }
+
+    const payload = { userId: user.id };
+    const accessToken = await generateToken(payload, "15m");
+    const refreshToken = await generateToken(payload, "30d");
+
+    return toUserResponse(user, refreshToken, accessToken);
   }
 }

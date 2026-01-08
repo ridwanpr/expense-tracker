@@ -1,10 +1,13 @@
 import express from "express";
 import { errorMiddleware } from "../middleware/error.middleware";
 import { publicRouter } from "../routes/public.routes";
+import { trimMiddleware } from "../middleware/trim.middleware";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(trimMiddleware);
 
 app.use(publicRouter);
 

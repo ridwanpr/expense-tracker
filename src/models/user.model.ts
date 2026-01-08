@@ -13,6 +13,11 @@ export type CreateUserRequest = {
   password: string;
 };
 
+export type LoginRequest = {
+  username: string;
+  password: string;
+};
+
 export function toUserResponse(
   user: User,
   refreshToken: string,

@@ -15,4 +15,9 @@ export class UserValidation {
       .min(3, { message: "Name must be at least 3 characters" })
       .max(100, { message: "Name must be less than 100 characters" }),
   });
+
+  static readonly LOGIN = z.object({
+    username: z.string(),
+    password: z.string(),
+  });
 }

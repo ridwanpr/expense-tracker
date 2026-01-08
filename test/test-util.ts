@@ -15,7 +15,7 @@ export class UserTest {
     await prisma.user.create({
       data: {
         username: "test",
-        password: await bcrypt.hash("test", 11),
+        password: await bcrypt.hash("123456", 11),
         name: "test",
       },
     });
