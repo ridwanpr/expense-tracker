@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
-import { PrismaClient } from "../generated/prisma/client";
-import logger from "./logging";
+import { PrismaClient, Prisma } from "../generated/prisma/client.js";
+import logger from "./logging.js";
 
 const adapter = new PrismaMariaDb({
   host: process.env.DATABASE_HOST!,
@@ -33,15 +33,15 @@ const prisma = new PrismaClient({
   ],
 });
 
-prisma.$on("error", (e) => {
+prisma.$on("error", (e: Prisma.LogEvent) => {
   logger.error(e);
 });
 
-prisma.$on("warn", (e) => {
+prisma.$on("warn", (e: Prisma.LogEvent) => {
   logger.warn(e);
 });
 
-prisma.$on("info", (e) => {
+prisma.$on("info", (e: Prisma.LogEvent) => {
   logger.info(e);
 });
 

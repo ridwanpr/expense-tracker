@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { User } from "../generated/prisma/client";
+import { User } from "../generated/prisma/client.js";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 

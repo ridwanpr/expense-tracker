@@ -1,14 +1,14 @@
 import bcrypt from "bcrypt";
-import { prisma } from "../application/database";
-import { ResponseError } from "../error/response.error";
+import { prisma } from "../application/database.js";
+import { ResponseError } from "../error/response.error.js";
 import {
   CreateUserRequest,
   LoginRequest,
   toUserResponse,
-} from "../models/user.model";
-import { UserValidation } from "../validations/user.validation";
-import { Validation } from "../validations/validation";
-import { generateToken } from "../utils/generateToken";
+} from "../models/user.model.js";
+import { UserValidation } from "../validations/user.validation.js";
+import { Validation } from "../validations/validation.js";
+import { generateToken } from "../utils/generateToken.js";
 
 export class UserService {
   static async register(request: CreateUserRequest) {
